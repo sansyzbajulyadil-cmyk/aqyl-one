@@ -26,6 +26,10 @@ import {
   Zap,
 } from "lucide-react";
 
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
+).replace(/\/$/, "");
+
 type Page = "dashboard" | "knowledge" | "tutor" | "planner" | "progress";
 
 const topics = [
@@ -59,7 +63,7 @@ interface ChatMessage {
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("aqyl_token"));
-  const [userEmail, setUserEmail] = useState<string>(localStorage.getItem("aqyl_user_email") || "adil@aqyl.one");
+  const [userEmail, setUserEmail] = useState<string>(localStorage.getItem("aqyl_user_email") || "demo@aqyl.one");
   
   // Auth Form State
   const [isRegistering, setIsRegistering] = useState(false);
@@ -75,7 +79,7 @@ function App() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "Привет! Я AQYL — твой персональный учебный наставник на базе Llama 3. Чем могу помочь тебе по дискретной математике сегодня?",
+      text: "Привет! Я AQYL — твой персональный учебный наставник на базе Gemini. Чем могу помочь тебе по дискретной математике сегодня?",
     },
   ]);
   const [message, setMessage] = useState("");
@@ -97,7 +101,7 @@ function App() {
     async function fetchChatHistory() {
       if (!token) return;
       try {
-        const response = await fetch('${API_BASE_URL}/api/v1/chat/', {
+        const response = await fetch(`${API_BASE_URL}/api/v1/chat/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
@@ -121,7 +125,7 @@ function App() {
 
     try {
       if (isRegistering) {
-        const regRes = await fetch('${API_BASE_URL}/api/v1/auth/register', {
+        const regRes = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: emailInput, password: passwordInput }),
@@ -139,7 +143,7 @@ function App() {
         }
       }
 
-      let loginRes = await fetch('${API_BASE_URL}/api/v1/auth/login', {
+      let loginRes = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
@@ -149,7 +153,7 @@ function App() {
       });
 
       if (loginRes.status === 422) {
-        loginRes = await fetch('${API_BASE_URL}/api/v1/auth/login', {
+        loginRes = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: emailInput, password: passwordInput }),
@@ -218,7 +222,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('${API_BASE_URL}/api/v1/chat/', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/chat/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -242,7 +246,7 @@ function App() {
         { role: "assistant", text: data.content },
       ]);
     } catch (error: unknown) {
-      const errorMsg = error instanceof Error ? error.message : "Ошибка связи с Llama 3.";
+      const errorMsg = error instanceof Error ? error.message : "Ошибка связи с Gemini.";
       setMessages((current) => [
         ...current,
         {
@@ -307,7 +311,7 @@ function App() {
                 required
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
-                placeholder="adil@aqyl.one"
+                placeholder="demo@aqyl.one"
                 style={{
                   width: "100%",
                   padding: "10px 14px",
@@ -370,7 +374,7 @@ function App() {
           </div>
           
           <div style={{ marginTop: "16px", padding: "10px", backgroundColor: "#0d1117", borderRadius: "8px", fontSize: "12px", color: "#6e7681", textAlign: "center" }}>
-            Демо аккаунт: <b>test1@aqyl.one</b> / пароль: <b>password123</b>
+            Демо аккаунт: <b>demo@aqyl.one</b> / пароль: <b>AqylDemo2026!</b>
           </div>
         </div>
       </div>
@@ -740,7 +744,7 @@ function Tutor({ messages, message, setMessage, sendMessage, isLoading }: {
           <div className="tutor-header">
             <div className="tutor-avatar"><BrainCircuit size={23} /></div>
             <div><strong>AQYL</strong><span><i /> Персональный наставник</span></div>
-            <div className="tutor-header-right"><span className="ai-live">LLAMA 3 ACTIVE</span><MoreHorizontal size={20} /></div>
+            <div className="tutor-header-right"><span className="ai-live">GEMINI ACTIVE</span><MoreHorizontal size={20} /></div>
           </div>
           <div className="tutor-context"><div><BookOpen size={15} /> Дискретная математика</div><span>Тема: Композиция функций</span></div>
           <div className="chat-messages">
@@ -758,7 +762,7 @@ function Tutor({ messages, message, setMessage, sendMessage, isLoading }: {
                 <div className="chat-avatar"><Sparkles size={15} /></div>
                 <div className="message-content">
                   <span>AQYL</span>
-                  <p className="muted-text"><i>Печатает ответ с помощью Llama 3...</i></p>
+                  <p className="muted-text"><i>Печатает ответ с помощью Gemini...</i></p>
                 </div>
               </div>
             )}
@@ -772,7 +776,7 @@ function Tutor({ messages, message, setMessage, sendMessage, isLoading }: {
             <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Спроси AQYL о чём угодно..." disabled={isLoading} />
             <button type="submit" disabled={!message.trim() || isLoading}><Send size={18} /></button>
           </form>
-          <div className="chat-disclaimer" style={{ color: "#10b981" }}>🟢 Защищенный сеанс · Локальная Llama 3</div>
+          <div className="chat-disclaimer" style={{ color: "#10b981" }}>🟢 Защищенный сеанс · Локальная Gemini</div>
         </section>
         <aside className="tutor-aside">
           <section className="panel current-lesson">

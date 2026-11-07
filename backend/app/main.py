@@ -20,14 +20,28 @@ def seed_database():
     """Автоматическое наполнение базы данных демо-данными и демо-пользователем."""
     db = SessionLocal()
     try:
-        # Проверяем, есть ли уже пользователи в базе
-        if db.query(User).first(): # type: ignore
+        demo_email = "demo@aqyl.one"
+        demo_password = "AqylDemo2026!"
+
+        demo_user = db.query(User).filter(User.email == demo_email).first()
+        if demo_user:
+            demo_user.hashed_password = get_password_hash(demo_password)
+            demo_user.is_active = True
+            db.commit()
             return
 
-        # Создаем демо-пользователя для автозаполнения
+        legacy_user = db.query(User).filter(User.email == "adil@aqyl.one").first()
+        if legacy_user:
+            # Preserve the existing user ID and linked study data.
+            legacy_user.email = demo_email
+            legacy_user.hashed_password = get_password_hash(demo_password)
+            legacy_user.is_active = True
+            db.commit()
+            return
+
         demo_user = User(
-            email="adil@aqyl.one",
-            hashed_password=get_password_hash("password123"),
+            email=demo_email,
+            hashed_password=get_password_hash(demo_password),
             is_active=True,
         )
         db.add(demo_user)
